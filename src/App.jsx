@@ -1,35 +1,44 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState, useRef } from 'react';
+import SceneCanvas from './components/SceneCanvas';
+import FurnitureLibrary from './components/FurnitureLibrary';
+import RoomsMenu from './components/RoomsMenu';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [isLibraryOpen, setLibraryOpen] = useState(false);
+  const [isRoomsMenuOpen, setRoomsMenuOpen] = useState(false);
+  const sceneRef = useRef(); // This is a way to call functions on SceneCanvas
+
+  // You would pass a function to FurnitureLibrary to add items
+  const handleAddFurniture = (type) => {
+    // This is a placeholder for a more robust state management solution
+    // (like Zustand or passing a ref to SceneCanvas)
+    console.log("Add:", type);
+  };
+
+  // Keyboard controls would be managed here
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.code === 'Tab') {
+        e.preventDefault();
+        setLibraryOpen(prev => !prev);
+        setRoomsMenuOpen(false);
+      }
+      if (e.code === 'KeyM') {
+        e.preventDefault();
+        setRoomsMenuOpen(prev => !prev);
+        setLibraryOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div style={{ width: '100vw', height: '100vh' }}>
+      {isLibraryOpen && <FurnitureLibrary onAdd={handleAddFurniture} />}
+      {isRoomsMenuOpen && <RoomsMenu />}
+      <SceneCanvas ref={sceneRef} />
+    </div>
+  );
 }
-
-export default App
