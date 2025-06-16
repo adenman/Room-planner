@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import SceneCanvas from './components/SceneCanvas';
-import FurnitureLibrary from './components/FurnitureLibrary';
+import FurnitureLibrary from './components/FurnitureLibrary.jsx';
 import RoomsMenu from './components/RoomsMenu';
 
 export default function App() {
