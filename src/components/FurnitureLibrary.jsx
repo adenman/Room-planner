@@ -2,10 +2,11 @@ import React from 'react';
 
 // This is the list of all available items.
 const furnitureList = {
-    "Living Room": ["Couch", "SectionalCouch", "Chair", "CoffeeTable", "EndTable", "TvStand", "Bookshelf", "Fireplace"],
+    "Living Room": ["Couch", "SectionalCouch", "Armchair", "Chair", "CoffeeTable", "EndTable", "TvStand", "Bookshelf", "Fireplace"],
     "Bedroom": ["KingBed", "Dresser", "Nightstand"],
     "Office": ["Desk", "OfficeChair", "FilingCabinet"],
-    "Kitchen & Dining": ["DiningTable", "DiningChair", "KitchenCounter", "KitchenIsland", "Refrigerator", "Stove"],
+    // FIX: Corrected "KitchenCounter" to "Counter" and "KitchenIsland" to "Island"
+    "Kitchen & Dining": ["DiningTable", "DiningChair", "Counter", "Island", "Refrigerator", "Stove"],
     "Bathroom": ["Bathtub", "Toilet"],
     "Decor & Lighting": ["Rug", "LargeRug", "Plant", "TallPlant", "Painting", "Mirror", "FloorLamp", "TableLamp"],
     "Structural": ["Wall", "Door", "Window", "Stairs"]

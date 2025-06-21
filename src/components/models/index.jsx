@@ -1,16 +1,8 @@
-/*
-* =================================================================
-* MODELS INDEX
-* FILE: src/components/models/index.jsx
-*
-* This file exports all the individual model components from one
-* convenient place. This makes importing them into your main
-* scene component cleaner.
-* =================================================================
-*/
+export { Armchair } from './Armchair'; // Make sure to add this line
 export { Bathtub } from './Bathtub';
 export { KingBed } from './KingBed';
 export { Bookshelf } from './Bookshelf';
+// ...and so on for all your other models.
 export { Chair } from './Chair';
 export { CoffeeTable } from './CoffeeTable';
 export { Couch } from './Couch';

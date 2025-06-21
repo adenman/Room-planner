@@ -1,31 +1,43 @@
-import React, { useState, useRef, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import * as THREE from 'three';
 import Scene from './components/Scene';
 import FurnitureLibrary from './components/FurnitureLibrary';
 import RoomsMenu from './components/RoomsMenu';
 import './index.css';
 
+// Using a consistent key for localStorage is good practice.
+const LOCAL_STORAGE_KEY = '3dRoomPlannerSaves_v1';
+
 export default function App() {
+    // UI State
     const [isLibraryOpen, setLibraryOpen] = useState(false);
     const [isRoomsMenuOpen, setRoomsMenuOpen] = useState(false);
-    const [savedRooms, setSavedRooms] = useState({});
+    
+    // Data State
     const [furniture, setFurniture] = useState([]);
+    const [savedRooms, setSavedRooms] = useState({});
+    
+    // This will hold the camera object from the 3D scene once it's ready.
     const [camera, setCamera] = useState(null);
-
+    
     const isMenuOpen = isLibraryOpen || isRoomsMenuOpen;
 
-    // Load saved rooms from localStorage on initial render
+    // Load saved rooms from localStorage on the initial render.
     useEffect(() => {
         try {
-            const rooms = JSON.parse(localStorage.getItem('3dRoomPlannerSaves_v14')) || {};
+            const rooms = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) || {};
             setSavedRooms(rooms);
         } catch (e) {
-            console.error("Failed to load rooms:", e);
+            console.error("Failed to load rooms from localStorage:", e);
+            localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear corrupted data
         }
     }, []);
 
-    const handleAddItem = (itemType) => {
-        if (!camera) return;
+    const handleAddItem = useCallback((itemType) => {
+        if (!camera) {
+            console.warn("Camera is not yet available to determine spawn position.");
+            return;
+        }
         
         const forwardVector = new THREE.Vector3();
         camera.getWorldDirection(forwardVector);
@@ -34,22 +46,22 @@ export default function App() {
         const newItem = {
             id: Date.now(),
             type: itemType,
-            position: [spawnPos.x, 0.5, spawnPos.z],
+            position: [spawnPos.x, 0.5, spawnPos.z], // Default Y position on the ground
             rotation: [0, 0, 0],
             scale: [1, 1, 1],
         };
         setFurniture(prev => [...prev, newItem]);
-    };
-    
+    }, [camera]); // This function depends on the camera object.
+
     const handleSaveRoom = (name) => {
-        if (!name) return alert("Please enter a name for the room.");
+        if (!name.trim()) return alert("Please enter a name for the room.");
         const newSavedRooms = { ...savedRooms, [name]: { furniture } };
         setSavedRooms(newSavedRooms);
-        localStorage.setItem('3dRoomPlannerSaves_v14', JSON.stringify(newSavedRooms));
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newSavedRooms));
     };
 
     const handleLoadRoom = (name) => {
-        if(savedRooms[name]) {
+        if (savedRooms[name]) {
             setFurniture(savedRooms[name].furniture || []);
         }
     };
@@ -58,24 +70,29 @@ export default function App() {
         if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
             const { [name]: _, ...remainingRooms } = savedRooms;
             setSavedRooms(remainingRooms);
-            localStorage.setItem('3dRoomPlannerSaves_v14', JSON.stringify(remainingRooms));
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(remainingRooms));
         }
     };
 
-    const handleNewRoom = () => setFurniture([]);
+    const handleNewRoom = () => {
+        if (window.confirm('Are you sure you want to start a new room? All unsaved changes will be lost.')) {
+            setFurniture([]);
+        }
+    };
 
+    // Effect for handling keyboard shortcuts to open menus.
     useEffect(() => {
         const handleKeyDown = (e) => {
-            if (e.target.tagName === 'INPUT') return;
+            if (e.target.tagName === 'INPUT') return; // Don't interfere with typing
             if (e.code === 'Tab') {
                 e.preventDefault();
                 setLibraryOpen(prev => !prev);
-                if (!isLibraryOpen) setRoomsMenuOpen(false);
+                if (!isLibraryOpen) setRoomsMenuOpen(false); // Close other menu
             }
             if (e.code === 'KeyM') {
                 e.preventDefault();
                 setRoomsMenuOpen(prev => !prev);
-                if (!isLibraryOpen) setLibraryOpen(false);
+                if (!isRoomsMenuOpen) setLibraryOpen(false); // Close other menu
             }
         };
         window.addEventListener('keydown', handleKeyDown);
@@ -103,7 +120,7 @@ export default function App() {
                 furniture={furniture} 
                 setFurniture={setFurniture} 
                 isMenuOpen={isMenuOpen}
-                setCamera={setCamera}
+                setCamera={setCamera} // Pass the camera setter down to the scene
             />
         </>
     );

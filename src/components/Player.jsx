@@ -1,37 +1,50 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, forwardRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { PointerLockControls } from '@react-three/drei';
 import * as THREE from 'three';
 
-function Player({ isMenuOpen }) {
+const Player = forwardRef(({ isMenuOpen, onCameraReady }) => {
     const { scene } = useThree();
     const controlsRef = useRef();
     
+    // When the controls are ready, pass the camera object up to the App component
     useEffect(() => {
-        const handleClick = () => {
-            if (!isMenuOpen) {
-                controlsRef.current?.lock();
+        if (controlsRef.current) {
+            onCameraReady(controlsRef.current.getObject());
+        }
+    }, [onCameraReady]);
+
+    // This effect handles locking and unlocking the pointer
+    useEffect(() => {
+        const handleCanvasClick = () => {
+            if (!isMenuOpen && controlsRef.current && !controlsRef.current.isLocked) {
+                controlsRef.current.lock();
             }
         };
-        document.body.addEventListener('click', handleClick);
-        return () => document.body.removeEventListener('click', handleClick);
-    }, [isMenuOpen]);
 
-    useEffect(() => {
-        if (isMenuOpen && controlsRef.current) {
+        const canvasEl = document.querySelector('canvas');
+        if (canvasEl) {
+            canvasEl.addEventListener('click', handleCanvasClick);
+        }
+
+        // If a menu is opened while the pointer is locked, unlock it
+        if (isMenuOpen && controlsRef.current?.isLocked) {
             controlsRef.current.unlock();
         }
+
+        return () => {
+            if (canvasEl) {
+                canvasEl.removeEventListener('click', handleCanvasClick);
+            }
+        };
     }, [isMenuOpen]);
 
-    const moveState = useRef({
-        forward: false,
-        backward: false,
-        left: false,
-        right: false,
-    });
+    // --- Player Movement Logic (largely unchanged) ---
+    const moveState = useRef({ forward: false, backward: false, left: false, right: false });
 
     useEffect(() => {
         const onKeyDown = (event) => {
+            if (event.target.tagName === 'INPUT') return;
             switch (event.code) {
                 case 'KeyW': case 'ArrowUp': moveState.current.forward = true; break;
                 case 'KeyA': case 'ArrowLeft': moveState.current.left = true; break;
@@ -51,7 +64,6 @@ function Player({ isMenuOpen }) {
 
         document.addEventListener('keydown', onKeyDown);
         document.addEventListener('keyup', onKeyUp);
-
         return () => {
             document.removeEventListener('keydown', onKeyDown);
             document.removeEventListener('keyup', onKeyUp);
@@ -108,6 +120,6 @@ function Player({ isMenuOpen }) {
     });
 
     return <PointerLockControls ref={controlsRef} />;
-}
+});
 
 export default Player;
